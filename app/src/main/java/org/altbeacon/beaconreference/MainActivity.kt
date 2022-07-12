@@ -13,9 +13,10 @@ import android.widget.ListView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import org.altbeacon.beacon.Beacon
-import org.altbeacon.beacon.BeaconManager
-import org.altbeacon.beacon.MonitorNotifier
+import org.altbeacon.beacon.*
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.concurrent.schedule
 
 class MainActivity : AppCompatActivity() {
     lateinit var beaconListView: ListView
@@ -23,6 +24,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var monitoringButton: Button
     lateinit var rangingButton: Button
     lateinit var beaconReferenceApplication: BeaconReferenceApplication
+    lateinit var timer:Timer
     var alertDialog: AlertDialog? = null
     var neverAskAgainPermissions = ArrayList<String>()
 
@@ -53,6 +55,11 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onResume")
         super.onResume()
         checkPermissions()
+
+        timer =Timer("SettingUp", false)
+        timer!!.schedule(1500) {
+            setAlbBeacon()
+        }
     }
 
     val monitoringObserver = Observer<Int> { state ->
@@ -157,7 +164,7 @@ class MainActivity : AppCompatActivity() {
         var permissions = arrayOf( Manifest.permission.ACCESS_FINE_LOCATION)
         var permissionRationale ="This app needs fine location permission to detect beacons.  Please grant this now."
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            permissions = arrayOf( Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.BLUETOOTH_SCAN)
+            permissions = arrayOf( Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.BLUETOOTH_SCAN,Manifest.permission.BLUETOOTH_ADVERTISE)
             permissionRationale ="This app needs fine location permission, and bluetooth scan permission to detect beacons.  Please grant all of these now."
         }
         else if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -290,6 +297,26 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    }
+
+    fun setAlbBeacon(){
+        val beacon = Beacon.Builder()
+            .setId1("2f234454-cf6d-4a0f-adf2-f4911ba9ffa6")
+            .setId2("1")
+            .setId3("2")
+            .setManufacturer(0x0118)
+            .setTxPower(-59)
+            .setDataFields(listOf(0L))
+            .build()
+        val beaconParser = BeaconParser()
+            .setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")
+        val beaconTransmitter = BeaconTransmitter(getApplicationContext(), beaconParser)
+        beaconTransmitter.startAdvertising(beacon)
+    }
+
+    override fun onDestroy() {
+        timer!!.cancel()
+        super.onDestroy()
     }
 
     companion object {
