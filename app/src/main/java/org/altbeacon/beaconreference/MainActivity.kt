@@ -300,16 +300,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun setAlbBeacon(){
+        //Change region then build apk to install on different devices
         val beacon = Beacon.Builder()
             .setId1("2f234454-cf6d-4a0f-adf2-f4911ba9ffa6")
-            .setId2("1")
+            .setId2("2")
             .setId3("2")
             .setManufacturer(0x0118)
             .setTxPower(-59)
             .setDataFields(listOf(0L))
             .build()
         val beaconParser = BeaconParser()
-            .setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")
+//            .setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")
+            .setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")
         val beaconTransmitter = BeaconTransmitter(getApplicationContext(), beaconParser)
         beaconTransmitter.startAdvertising(beacon)
     }
